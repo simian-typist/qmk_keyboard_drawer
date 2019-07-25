@@ -1,3 +1,4 @@
 # these should never go in
 .idea/
+venv/
 *.swp
