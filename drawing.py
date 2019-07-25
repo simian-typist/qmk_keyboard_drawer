@@ -1,6 +1,8 @@
 import numpy as np
 from PIL import Image, ImageDraw
 import math
+
+
 def rotate(origin, point, angle):
     ox, oy = origin
     px, py = point
@@ -8,6 +10,7 @@ def rotate(origin, point, angle):
     qx = ox + math.cos(angle) * (px - ox) - math.sin(angle) * (py - oy)
     qy = oy + math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
     return np.round(qx), np.round(qy)
+
 
 def draw_key(image, centre, width, width_scale):
     width = 0.5*width
