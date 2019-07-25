@@ -1,0 +1,3 @@
+# these should never go in
+.idea/
+*.swp
