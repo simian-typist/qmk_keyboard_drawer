@@ -1,68 +1,48 @@
 import math
 import numpy as np
 from PIL import Image, ImageDraw
+from utils import rotate_point
 
 
-def rotate(origin, point, angle):
-    ox, oy = origin
-    px, py = point
-
-    qx = ox + math.cos(angle) * (px - ox) - math.sin(angle) * (py - oy)
-    qy = oy + math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
-    return np.round(qx), np.round(qy)
-
-
-def get_corners(centre, width, width_scale):
-    width = 0.5*width
+def get_corners(centre, width_scale, start_point):
     horiz_rot = 2*math.atan(width_scale)
     vert_rot = math.pi - horiz_rot
 
-    top_left = (centre[0]-width_scale*width, centre[1]-width)
-    top_right = rotate(centre, top_left, horiz_rot)
-    bottom_left = rotate(centre, top_left, -vert_rot)
-    bottom_right = rotate(centre, top_left, horiz_rot+vert_rot)
-    return top_left, top_right, bottom_left, bottom_right
+    points = np.vstack((start_point, rotate_point(centre, start_point, horiz_rot)))
+    points = np.vstack((points, rotate_point(centre, points[0, :], horiz_rot+vert_rot)))
+    points = np.vstack((points, rotate_point(centre, points[0, :], -vert_rot)))
+    return points
 
 
-def get_smaller_rectangle(centre, top_left, width_scale, small_scale):
-    h_rot = 2*math.atan(width_scale)
-    v_rot = math.pi - h_rot
-    small_top_left =  ((centre[0]-top_left[0])*small_scale+centre[0], (centre[1]-top_left[1])*small_scale + centre[1])
-    small_top_right = rotate(centre, small_top_left, h_rot)
-    small_bottom_left = rotate(centre, small_top_left, -v_rot)
-    small_bottom_right = rotate(centre, small_top_left, h_rot+v_rot)
-    return small_top_left, small_top_right, small_bottom_left, small_bottom_right
+def draw_borders(points, draw):
+    for i in range(-1, points.shape[0] - 1):
+        draw.line((tuple(points[i, :]), tuple(points[i + 1, :])), fill=0)
 
 
-def draw_key(image, centre, width, width_scale):
-    top_left, top_right, bottom_left, bottom_right = get_corners(centre, width, width_scale)
-    s_tl, s_tr, s_bl, s_br = get_smaller_rectangle(centre, top_left, width_scale, 0.8)
+def draw_key(image, centre, width, width_scale, small_scale):
+    width = 0.5*width
 
-    left = (top_left, bottom_left)
-    right = (top_right, bottom_right)
-    top = (top_left, top_right)
-    bottom = (bottom_left, bottom_right)
+    main_top_left = np.array([centre[0] - width_scale * width, centre[1] - width])
+    main_points = get_corners(centre, width_scale, main_top_left)
+    small_top_left =  np.array([
+        (centre[0]-main_points[0, 0])*small_scale+centre[0],
+        (centre[1]-main_points[0, 1])*small_scale + centre[1]
+    ])
+    small_points = get_corners(centre, width_scale, small_top_left)
+    offset = width*small_scale*0.05
+    small_points[:, 1] -= offset
 
-    s_left = (s_tl, s_bl)
-    s_right = (s_tr, s_br)
-    s_top = (s_tl, s_tr)
-    s_bottom = (s_bl, s_br)
+    print(small_points)
+    print(small_points.shape)
 
     draw = ImageDraw.Draw(image)
-    draw.line(s_left, fill=0)
-    draw.line(s_right, fill=0)
-    draw.line(s_top, fill=0)
-    draw.line(s_bottom, fill=0)
-
-    draw.line(left, fill=0)
-    draw.line(right, fill=0)
-    draw.line(top, fill=0)
-    draw.line(bottom, fill=0)
+    draw_borders(main_points, draw)
+    draw_borders(small_points, draw)
 
 
 def main():
     im = Image.new('RGBA', (400, 400), (255, 255, 255, 0))
-    draw_key(im, (200, 200), 100, 1.5)
+    draw_key(im, (200, 200), 100, width_scale=1.5, small_scale=0.8)
     im.show()
 
 
