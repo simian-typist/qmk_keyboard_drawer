@@ -14,9 +14,10 @@ def get_corners(centre, width_scale, start_point):
     return points
 
 
-def draw_borders(points, draw):
-    for i in range(-1, points.shape[0] - 1):
-        draw.line((tuple(points[i, :]), tuple(points[i + 1, :])), fill=0)
+def draw_borders(points, draw, fill, outline=None):
+    draw.polygon(list(points.flatten()), fill=fill, outline=outline)
+    # for i in range(-1, points.shape[0] - 1):
+    #     draw.line((tuple(points[i, :]), tuple(points[i + 1, :])), fill=0)
 
 
 def draw_key(image, centre, width, width_scale, small_scale):
@@ -29,20 +30,21 @@ def draw_key(image, centre, width, width_scale, small_scale):
         (centre[1]-main_points[0, 1])*small_scale + centre[1]
     ])
     small_points = get_corners(centre, width_scale, small_top_left)
-    offset = width*small_scale*0.05
+    offset = width*small_scale*0.12
     small_points[:, 1] -= offset
 
     print(small_points)
     print(small_points.shape)
 
     draw = ImageDraw.Draw(image)
-    draw_borders(main_points, draw)
-    draw_borders(small_points, draw)
+    draw_borders(main_points, draw, (200, 200, 200), outline=(50, 50, 50))
+    draw_borders(small_points, draw, (250, 250, 250), outline=(180, 180, 180))
 
 
 def main():
     im = Image.new('RGBA', (400, 400), (255, 255, 255, 0))
-    draw_key(im, (200, 200), 100, width_scale=1.5, small_scale=0.8)
+    draw_key(im, (200, 200), 110, width_scale=1.0, small_scale=0.75)
+    im.save("test_img.bmp")
     im.show()
 
 

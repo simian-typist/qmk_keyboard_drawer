@@ -1,5 +1,9 @@
-# these should never go in
-.idea/
+# project specific
+idea/
 __pycache__/
 venv/
+
+# filetypes that shouldn't go in git
 *.swp
+*.bmp
+*.jpg
